@@ -249,6 +249,8 @@ h1, h2 { margin: 0; text-wrap: balance; }
 .parts b { font: 800 22px/1.1 var(--f-display); font-variant-numeric: tabular-nums; }
 .parts small { font-size: 13px; color: var(--muted); font-weight: 600; }
 .parts .parts-tot { background: var(--accent-soft); }
+.lock-note { text-align: center; color: var(--bad); font-size: 14px; margin: 8px 0 0; }
+.opt:disabled, .tfb:disabled { opacity: .75; cursor: default; }
 .sync-note { color: var(--muted); font-size: 13px; margin: 4px 2px 12px; }
 .es-row td { background: var(--bg); font-size: 13px; }
 .es-row details p { margin: 6px 0; white-space: normal; }
@@ -2836,7 +2838,7 @@ const exMin = (s) => (s && EXAM_MIN_BY[s.subj]) || EXAM_MIN;
 const QSEC = 30; // giây tối đa cho câu chọn đáp án và trả lời ngắn
 const QSEC_TF = 45; // giây tối đa cho câu đúng – sai (4 ý)
 const qSec = (q) => (q && q.t === "tf" ? QSEC_TF : QSEC);
-const restSec = (s) => s.qs.slice(s.i + 1).reduce((n, q) => n + qSec(q), 0);
+const restSec = (s) => s.qs.reduce((n, q, j) => n + (j === s.i ? 0 : s.left ? Math.max(0, Math.ceil(s.left[j] / 1000)) : j > s.i ? qSec(q) : 0), 0);
 const TYPE_LABEL = { mc: "Chọn 1 đáp án đúng", tf: "Chọn Đúng hoặc Sai cho từng ý", sa: "Điền đáp án ngắn" };
 const BY_ID = Object.fromEntries(BANK.map((q) => [q.id, q]));
 const LES = Object.fromEntries(LESSONS.map((l) => [l.id, l]));
@@ -3419,7 +3421,28 @@ function quizTitle(s) {
 }
 /* ----- Dây cháy: mỗi câu tối đa QSEC giây ----- */
 const nowMs = () => (window.performance && performance.now ? performance.now() : Date.now());
-function startQuestionTimer() { session.deadline = nowMs() + qSec(session.qs[session.i]) * 1000; session.paused = null; }
+function startQuestionTimer() {
+  const s = session;
+  if (!s.left) { s.left = s.qs.map((q) => qSec(q) * 1000); s.maxI = 0; }
+  s.deadline = nowMs() + s.left[s.i]; s.paused = null;
+}
+const qLocked = (s, i) => !s.exam && s.left && s.left[i] <= 0; // câu đã hết giờ: xem lại được nhưng không sửa
+function goQuestion(i) { // chuyển câu, giữ thời gian còn lại của từng câu
+  const s = session;
+  clearTimeout(s.advT);
+  if (s.exam) { gotoPage(i); return; }
+  i = Math.max(0, Math.min(s.qs.length - 1, i));
+  if (s.left[s.i] > 0) s.left[s.i] = Math.max(0, (s.paused != null ? s.paused : s.deadline - nowMs()));
+  s.i = i; s.maxI = Math.max(s.maxI, i);
+  startQuestionTimer();
+  renderQuiz(); window.scrollTo(0, 0);
+}
+function autoNext() { // trả lời xong tự sang câu sau (câu cuối thì chờ con bấm Nộp bài)
+  const s = session, at = s.i;
+  clearTimeout(s.advT);
+  if (at >= pagesOf(s) - 1 || (!s.exam && at >= s.qs.length - 1)) return;
+  s.advT = setTimeout(() => { if (session === s && s.i === at && view === "quiz") goQuestion(at + 1); }, 550);
+}
 function pauseTimer() { if (session && session.paused == null) session.paused = Math.max(0, session.deadline - nowMs()); }
 function resumeTimer() { if (session && session.paused != null) { session.deadline = nowMs() + session.paused; session.paused = null; } }
 const mmss = (sec) => Math.floor(sec / 60) + ":" + String(sec % 60).padStart(2, "0");
@@ -3440,12 +3463,13 @@ function updateFuse(rem) {
 function tick() {
   if (view === "quiz" && session && session.paused == null) {
     const rem = session.deadline - nowMs();
-    if (rem <= 0) { if (session.exam) { session.timeUpExam = true; submit(); } else timeUp(); } else updateFuse(rem);
+    if (rem <= 0) { if (session.exam) { session.timeUpExam = true; submit(); } else if (!qLocked(session, session.i)) timeUp(); } else updateFuse(rem);
   }
   requestAnimationFrame(tick);
 }
 function timeUp() {
   const s = session;
+  s.left[s.i] = 0;
   if (!isAnswered(s.qs[s.i], s.ans[s.i])) s.timeout[s.i] = true;
   nextQuestion(true);
 }
@@ -3455,15 +3479,12 @@ function askSubmitExam() {
   pauseTimer();
   showConfirm(left ? `Con còn <b>${left}</b> câu chưa làm. Vẫn nộp bài chứ?` : "Con đã làm hết các câu. Nộp bài nhé?", "Nộp bài", submit);
 }
-function gotoPage(i) { const s = session; s.i = Math.max(0, Math.min(pagesOf(s) - 1, i)); renderQuiz(); window.scrollTo(0, 0); }
+function gotoPage(i) { const s = session; clearTimeout(s.advT); s.i = Math.max(0, Math.min(pagesOf(s) - 1, i)); renderQuiz(); window.scrollTo(0, 0); }
 function nextQuestion(fromTimer) {
   const s = session;
   if (s.exam) { if (s.i >= pagesOf(s) - 1) askSubmitExam(); else gotoPage(s.i + 1); return; }
-  if (s.i >= s.qs.length - 1) { submit(); return; }
-  s.i++;
-  startQuestionTimer();
-  renderQuiz();
-  window.scrollTo(0, 0);
+  if (s.i >= s.qs.length - 1) { if (fromTimer) { renderQuiz(); toastQuiz("Hết giờ câu này. Con xem lại các câu trước hoặc bấm Nộp bài."); } else submit(); return; }
+  goQuestion(s.i + 1);
   if (fromTimer) toastQuiz("Hết giờ câu trước, chuyển sang câu tiếp theo");
 }
 function toastQuiz(msg) {
@@ -3532,6 +3553,7 @@ function renderQuiz() {
   const done = isAnswered(q, a);
   const rem = s.paused != null ? s.paused : Math.max(0, s.deadline - nowMs());
   const sec = Math.ceil(rem / 1000);
+  const lock = qLocked(s, s.i);
   let body = "";
   if (q.t === "mc") {
     body = `<div class="opts">${q.opts.map((o, i) => `<button class="opt ${a === i ? "on" : ""}" data-i="${i}" id="opt-${i}"><b>${"ABCD"[i]}</b><span>${esc(o)}</span></button>`).join("")}</div>`;
@@ -3563,20 +3585,25 @@ function renderQuiz() {
       <h2 class="qtext">Câu ${s.i + 1}. ${esc(q.q)}</h2>
       ${body}
     </article>
-    ${s.exam ? examNavHTML(s) : `<div class="qnav">
+    ${lock ? `<p class="lock-note">Câu này đã hết giờ nên con chỉ xem lại được, không sửa được nữa.</p>` : ""}
+    ${s.exam ? examNavHTML(s) : `<div class="qnav exam-nav">
+      <button class="ghost" id="btn-prev" ${s.i === 0 ? "disabled" : ""}>${ICON.back} Câu trước</button>
       ${last ? `<button class="btn-next btn-submit" id="btn-next">Nộp bài ${ICON.check}</button>`
-        : `<button class="btn-next ${done ? "" : "skip"}" id="btn-next">${done ? "Câu tiếp" : "Bỏ qua"} ${ICON.arrow}</button>`}
+        : `<button class="btn-next ${done ? "" : "skip"}" id="btn-next">${done || s.i < s.maxI ? "Câu tiếp" : "Bỏ qua"} ${ICON.arrow}</button>`}
     </div>
-    <div class="dots" aria-label="Tiến độ">
-      ${s.qs.map((qq, i) => `<span class="dot ${i === s.i ? "cur" : ""} ${i < s.i ? (s.timeout[i] ? "late" : isAnswered(qq, s.ans[i]) ? "done" : "skipd") : ""}">${i + 1}</span>`).join("")}
+    <div class="dots" aria-label="Đi tới câu">
+      ${s.qs.map((qq, i) => i <= s.maxI ? `<button class="dot ${i === s.i ? "cur" : ""} ${i !== s.i ? (s.timeout[i] && !isAnswered(qq, s.ans[i]) ? "late" : isAnswered(qq, s.ans[i]) ? "done" : "skipd") : ""}" data-go="${i}" aria-label="Câu ${i + 1}">${i + 1}</button>` : `<span class="dot">${i + 1}</span>`).join("")}
     </div>`}
     <p class="qtoast" id="qtoast" hidden></p>
     <div class="confirm" id="confirm" hidden></div>
   </div>`;
-  document.querySelectorAll(".opt").forEach((b) => (b.onclick = () => { s.ans[s.i] = +b.dataset.i; renderQuiz(); }));
+  if (lock) document.querySelectorAll(".opt, .tfb, #sa-input").forEach((b) => (b.disabled = true));
+  document.querySelectorAll(".opt").forEach((b) => (b.onclick = () => { if (lock) return; s.ans[s.i] = +b.dataset.i; renderQuiz(); autoNext(); }));
   document.querySelectorAll(".tfb").forEach((b) => (b.onclick = () => {
+    if (lock) return;
     const arr = s.ans[s.i] ? s.ans[s.i].slice() : [null, null, null, null];
     arr[+b.dataset.k] = b.dataset.v === "1"; s.ans[s.i] = arr; renderQuiz();
+    if (arr.every((x) => x !== null)) autoNext();
   }));
   const inp = $("#sa-input");
   if (inp) {
@@ -3585,6 +3612,8 @@ function renderQuiz() {
   }
   if (s.exam) { bindExamNav(); return; }
   $("#btn-next").onclick = () => nextQuestion(false);
+  $("#btn-prev").onclick = () => goQuestion(s.i - 1);
+  document.querySelectorAll("[data-go]").forEach((b) => (b.onclick = () => goQuestion(+b.dataset.go)));
   $("#btn-quit").onclick = () => { pauseTimer(); showConfirm("Thoát bây giờ thì bài làm sẽ không được chấm. Con chắc chứ?", "Thoát", () => { session = null; renderHome(); window.scrollTo(0, 0); }); };
 }
 function isAnswered(q, a) {
