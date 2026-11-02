@@ -24,7 +24,7 @@ const EXAM_MIN = 45; // phút làm bài cho mỗi đề ôn giữa kì (tab Đ�
 const EXAM_MIN_BY = { ls: 60 }; // Sử – Địa: 60 phút theo đề cương
 const exMin = (s) => (s && EXAM_MIN_BY[s.subj]) || EXAM_MIN;
 const QSEC = 60; // giây tối đa cho câu chọn đáp án và trả lời ngắn
-const QSEC_TF = 60; // giây tối đa cho câu đúng – sai (4 ý)
+const QSEC_TF = 120; // giây tối đa cho câu đúng – sai (4 ý)
 const qSec = (q) => (q && q.t === "tf" ? QSEC_TF : QSEC);
 const restSec = (s) => s.qs.reduce((n, q, j) => n + (j === s.i ? 0 : s.left ? Math.max(0, Math.ceil(s.left[j] / 1000)) : j > s.i ? qSec(q) : 0), 0);
 const TYPE_LABEL = { mc: "Chọn 1 đáp án đúng", tf: "Chọn Đúng hoặc Sai cho từng ý", sa: "Điền đáp án ngắn" };
@@ -459,7 +459,7 @@ function renderHome() {
   let body = "";
   if (sel.mode === "bai") {
     body = `<div class="sec-row"><h2 class="sec">3. Chọn bài</h2>${hkToggle}</div>
-      <p class="hint">Mỗi lượt 20 câu: câu của bài đó và vài câu ôn lại bài trước. Mỗi câu tối đa ${QSEC === QSEC_TF ? QSEC / 60 + " phút" : QSEC + " giây, câu đúng – sai " + QSEC_TF + " giây"}. Đạt từ ${PASS} điểm là hoàn thành bài. Biểu tượng máy in để tải đề Word.</p>
+      <p class="hint">Mỗi lượt 20 câu: câu của bài đó và vài câu ôn lại bài trước. Mỗi câu tối đa ${QSEC / 60} phút, câu đúng – sai (4 ý) ${QSEC_TF / 60} phút. Đạt từ ${PASS} điểm là hoàn thành bài. Biểu tượng máy in để tải đề Word.</p>
       ${lessonListHTML()}`;
   } else {
     const n = sel.mode === "kttx" ? 20 : sel.mode === "gk" ? 25 : 30;
