@@ -78,4 +78,13 @@ const ESSAY_KEYS = {
   kt18: ["kho phan huy|lau phan huy|tram nam|o nhiem; dat|nuoc|bien", "dong vat|ca|rua|chet|dot|khi doc", "tui vai|binh nuoc|han che|giam|mot lan|khong dung", "tai su dung|tai che|phan loai|3r"],
   kt19: ["24.1 + 24.2 + 24.3|: 3|chia 3|trung binh", "72.6|24.2 cm|24.2cm|24.2", "sai so|chua chinh xac|dat thuoc|dat mat|doc", "giam sai so|chinh xac hon|chinh xac"],
   kt20: ["uoc luong; ghd|dcnn|chon|phu hop|chinh xac", "san truong; thuoc cuon|thuoc day|thuoc dai", "quyen vo; thuoc ke|thuoc thang|30 cm|20 cm", "co tay; thuoc day|mem|quan"],
+  kt21: ["vat rat nho|te bao|vi khuan|phong to|khong nhin thay", "chon vat kinh|vat kinh", "anh sang|guong|den", "tieu ban|ban kinh|kep|oc to|ha vat kinh", "thi kinh|oc nho|nang vat kinh|nhin ro"],
+  kt22: ["nhan biet|canh bao|nguy hiem|an toan|nhac nho", "tam giac|nen vang|chat doc|de chay|an mon|dien cao the", "hinh tron; vien do|cam", "nen xanh|bat buoc|chi dan|thoat hiem|deo kinh|gang tay"],
+  kt23: ["nhan; can tieu li|can dien tu|tieu ly|nhe", "gao; can dong ho|can don|can dien tu", "hoc sinh|nguoi; can suc khoe|can y te|ghd lon", "kilogam|ki lo gam|kg"],
+  kt24: ["ran; hinh dang xac dinh|the tich xac dinh|kho nen|khong nen", "long; khong co hinh dang|hinh dang cua vat chua|the tich xac dinh", "khi; de nen|khong co hinh dang|chiem toan bo|khong xac dinh", "vi du|da|nuoc|khong khi|hoi nuoc"],
+  kt25: ["nen; up|ong dong|coc", "het oxygen|het oxi|tieu thu|tat", "nuoc dang|dang len|1/5|mot phan nam", "21|1/5|mot phan nam; oxygen|oxi"],
+  kt26: ["vat lieu tu nhien|chua qua xu li|chua che bien|tho|che bien", "quang; sat|nhom|kim loai|gang|thep|bauxite", "da voi; voi|xi mang|xay dung", "co han|can kiet|o nhiem|tiet kiem|tai che|ben vung"],
+  kt27: ["luong thuc; gao|ngo|khoai|san|lua mi|tinh bot", "thuc pham; thit|ca|trung|sua|rau|qua|dam|vitamin", "nang luong|dinh duong|lon len|hoat dong", "bao quan; kho rao|thoang mat|tu lanh|lanh|dong goi|han su dung"],
+  kt28: ["tinh chat; cung|deo|dan dien|cach nhiet|de vo|gi", "ben|an toan|tiet kiem|phu hop|vi du", "dung muc dich|bao quan|tuoi tho|dung cach", "tai su dung|tai che|tiet kiem|ben vung|nhua"],
+  kt29: ["nhiet ke; y te|thuy ngan|dien tu|ruou|hong ngoai; do c|°c| c", "uoc luong|ghd|dcnn|chon nhiet ke", "nhung|ngap; khong cham|day|thanh coc|on dinh", "mat; ngang|vuong goc|vach gan nhat|can than|nong|vo"],
 };

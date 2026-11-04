@@ -16,7 +16,7 @@ const MODES = {
 };
 const PASS = 5; // điểm tối thiểu để hoàn thành một bài
 // Bài đã học trên lớp (mặc định do phụ huynh báo ngày 31/10/2026); chỉnh được trên trang.
-const LEARNED_DEFAULT = { ls_s: "s7", ls_d: "d6", kh: "k12", cn: "c3", gd: "g3", th: "t4" };
+const LEARNED_DEFAULT = { ls_s: "s8", ls_d: "d6", kh: "k13", cn: "c3", gd: "g3", th: "t4" };
 const TRACKS = { ls: [["ls_s", "Lịch sử"], ["ls_d", "Địa lí"]], kh: [["kh", ""]], cn: [["cn", ""]], gd: [["gd", ""]], th: [["th", ""]] };
 const LESSON_TOTAL = 20; // số câu một lượt ôn theo bài
 const LESSON_OWN_MAX = 14; // tối đa số câu của chính bài đó, còn lại ôn bài trước
@@ -1118,7 +1118,8 @@ function gradeEssay(e, ans) {
   const marks = e.ideas.map((t, j) => !String(ans || "").trim() ? 0 : keys && keys[j] ? keyIdea(keys[j], flat) : gradeIdea(t, ans || "", qToks));
   let frac = marks.reduce((a, b) => a + b, 0) / e.ideas.length, copied = false;
   const at = esToks(ans || "").filter((w) => !ES_STOP.has(w));
-  if (at.length >= 8 && at.filter((w) => qToks.has(w)).length / at.length > 0.8) { frac *= 0.5; copied = true; } // chủ yếu chép lại đề
+  const qLen = esToks(e.q).filter((w) => !ES_STOP.has(w)).length;
+  if (at.length >= 8 && at.length >= 0.6 * qLen && at.filter((w) => qToks.has(w)).length / at.length > 0.85) { frac *= 0.5; copied = true; } // chủ yếu chép lại đề
   return { marks, frac, copied };
 }
 const q4 = (x) => Math.round(x * 4) / 4;

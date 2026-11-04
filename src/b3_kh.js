@@ -116,7 +116,7 @@ T("Về nhiên liệu:",["+Xăng là nhiên liệu lỏng.","-Nhiên liệu hóa
 S("Khí sinh học sinh ra từ phân chuồng còn được gọi là khí gì?","biogas");
 M("Vì sao nên chẻ nhỏ củi khi đun bếp?",["Để củi tiếp xúc nhiều với oxygen hơn, cháy tốt hơn","Để củi nặng hơn","Để củi lâu cháy hơn","Để giảm nhiệt"],1);
 
-L("kh","k13","Bài 13. Một số nguyên liệu",2,"Chủ đề 4. Vật liệu, nhiên liệu, nguyên liệu, lương thực – thực phẩm");
+L("kh","k13","Bài 13. Một số nguyên liệu",1,"Chủ đề 4. Vật liệu, nhiên liệu, nguyên liệu, lương thực – thực phẩm");
 M("Nguyên liệu là",["vật liệu tự nhiên chưa qua chế biến, dùng để sản xuất","sản phẩm đã hoàn thiện","thức ăn chín","rác thải"]);
 M("Đá vôi là nguyên liệu để sản xuất",["vôi sống, xi măng","nhôm","thủy tinh màu","nhựa"]);
 M("Quặng sắt là nguyên liệu để sản xuất",["gang, thép","nhôm","giấy","vải"]);
@@ -125,7 +125,7 @@ T("Về nguyên liệu:",["+Đá vôi là một loại nguyên liệu.","-Nguyê
 S("Quặng bô-xít là nguyên liệu để sản xuất kim loại nào?","nhôm");
 M("Vì sao nên thu gom, tái chế lon nhôm cũ?",["Tiết kiệm quặng, năng lượng và giảm rác thải","Để lon đẹp hơn","Vì lon nhôm không có giá trị","Để tăng khai thác quặng"],1);
 
-L("kh","k14","Bài 14. Một số lương thực – thực phẩm",2,"Chủ đề 4. Vật liệu, nhiên liệu, nguyên liệu, lương thực – thực phẩm");
+L("kh","k14","Bài 14. Một số lương thực – thực phẩm",1,"Chủ đề 4. Vật liệu, nhiên liệu, nguyên liệu, lương thực – thực phẩm");
 M("Lương thực chính của người Việt Nam là",["gạo","lúa mì","khoai tây","yến mạch"]);
 M("Nhóm chất cung cấp năng lượng chủ yếu cho cơ thể là",["tinh bột (carbohydrate)","vitamin","chất khoáng","nước"]);
 M("Chất đạm (protein) có nhiều trong",["thịt, cá, trứng, sữa","gạo, ngô","rau xanh","dầu ăn"]);
