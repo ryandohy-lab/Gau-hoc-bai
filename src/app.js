@@ -533,6 +533,7 @@ function renderHome() {
             <span class="pick-box">${picks.includes(l.id) ? ICON.check : ""}</span>
             <span class="pick-txt"><small>${esc(lesShort(l))}${learnedIds.includes(l) ? " · đã học" : ""}</small>${esc(lesName(l))}</span>
           </button>`).join("")}</div></div>`).join("")}
+        <div class="pick-pad" aria-hidden="true"></div>
         <div class="start-row sticky-start">
           <button class="btn-start" id="btn-start" ${picks.length ? "" : "disabled"}>${picks.length ? (isK ? "Kiểm tra " : "Ôn ") + picks.length + " bài" : "Hãy chọn bài"} ${ICON.arrow}</button>
         </div>`;

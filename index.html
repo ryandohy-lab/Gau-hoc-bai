@@ -157,7 +157,9 @@ h1, h2 { margin: 0; text-wrap: balance; }
 .pick.on .pick-box { background: var(--sc); border-color: var(--sc); }
 .pick-txt { min-width: 0; display: grid; font-weight: 600; font-size: 14.5px; line-height: 1.3; }
 .pick-txt small { font-size: 12px; color: var(--muted); font-weight: 700; }
-.sticky-start { position: sticky; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 5; }
+.sticky-start { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: flex; justify-content: center; padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px)); background: linear-gradient(to top, var(--bg) 70%, transparent); pointer-events: none; }
+.sticky-start .btn-start { pointer-events: auto; justify-self: center; }
+.pick-pad { height: 96px; }
 .ghost:disabled { opacity: .45; cursor: default; }
 .tabs.tabs3 { grid-template-columns: 1fr 1fr 1fr; }
 .tabs.tabs3 button { font-size: 13.5px; padding: 9px 4px; }
@@ -5254,6 +5256,7 @@ function renderHome() {
             <span class="pick-box">${picks.includes(l.id) ? ICON.check : ""}</span>
             <span class="pick-txt"><small>${esc(lesShort(l))}${learnedIds.includes(l) ? " · đã học" : ""}</small>${esc(lesName(l))}</span>
           </button>`).join("")}</div></div>`).join("")}
+        <div class="pick-pad" aria-hidden="true"></div>
         <div class="start-row sticky-start">
           <button class="btn-start" id="btn-start" ${picks.length ? "" : "disabled"}>${picks.length ? (isK ? "Kiểm tra " : "Ôn ") + picks.length + " bài" : "Hãy chọn bài"} ${ICON.arrow}</button>
         </div>`;
