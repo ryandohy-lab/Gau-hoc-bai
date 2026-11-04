@@ -641,12 +641,7 @@ function goQuestion(i) { // chuyển câu, giữ thời gian còn lại của t�
   startQuestionTimer();
   renderQuiz(); window.scrollTo(0, 0);
 }
-function autoNext() { // trả lời xong tự sang câu sau (câu cuối thì chờ con bấm Nộp bài)
-  const s = session, at = s.i;
-  clearTimeout(s.advT);
-  if (at >= pagesOf(s) - 1 || (!s.exam && at >= s.qs.length - 1)) return;
-  s.advT = setTimeout(() => { if (session === s && s.i === at && view === "quiz") goQuestion(at + 1); }, 550);
-}
+function autoNext() { /* Không tự chuyển câu nữa: con tự bấm "Câu tiếp" để tránh lỡ tay chọn nhầm. */ }
 function pauseTimer() { if (session && session.paused == null) session.paused = Math.max(0, session.deadline - nowMs()); }
 function resumeTimer() { if (session && session.paused != null) { session.deadline = nowMs() + session.paused; session.paused = null; } }
 const mmss = (sec) => Math.floor(sec / 60) + ":" + String(sec % 60).padStart(2, "0");
