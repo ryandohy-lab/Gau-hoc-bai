@@ -41,6 +41,7 @@
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 body {
+  margin: 0;
   background-color: var(--bg); color: var(--ink); font: 400 15px/1.55 var(--f-body);
   background-image:
     linear-gradient(var(--grid-b) 1px, transparent 1px),
@@ -253,6 +254,25 @@ h1, h2 { margin: 0; text-wrap: balance; }
 .parts .parts-tot { background: var(--accent-soft); }
 .lock-note { text-align: center; color: var(--bad); font-size: 14px; margin: 8px 0 0; }
 .opt:disabled, .tfb:disabled { opacity: .75; cursor: default; }
+/* Màn hình làm bài gói trong một màn hình: thẻ câu hỏi tự cuộn bên trong, nút và hàng số câu luôn hiện */
+#app:has(> .quiz) { padding-block: 10px; }
+.quiz { display: flex; flex-direction: column; gap: 10px; height: calc(100vh - 20px); height: calc(100dvh - 20px); min-height: 0; }
+.quiz > * { flex: none; }
+.quiz > .qcard { flex: 0 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; align-content: start; gap: 12px; padding: clamp(14px, 3vw, 22px); }
+.quiz .opts, .quiz .tfs { gap: 8px; }
+.quiz .opt { padding: 9px 12px; }
+.quiz .tf { padding: 8px 12px; }
+.quiz .fuse-total { margin: -4px 0 0; }
+.quiz .dots { gap: 4px; }
+.quiz .exam-submit-row { margin: 0; }
+.quiz .exam-submit-row button { padding: 6px 14px; }
+.exam-nav .btn-submit-now { margin-right: auto; }
+@media (max-height: 820px) {
+  .quiz .fuse-total { display: none; }
+  .quiz { gap: 8px; }
+  .quiz .qtags { display: none; }
+  .quiz .fuse-sec { height: 40px; }
+}
 .sync-note { color: var(--muted); font-size: 13px; margin: 4px 2px 12px; }
 .es-row td { background: var(--bg); font-size: 13px; }
 .es-row details p { margin: 6px 0; white-space: normal; }
@@ -5427,6 +5447,7 @@ function examFuseHTML(s) {
 function examNavHTML(s) {
   const n = pagesOf(s), lastP = s.i === n - 1;
   return `<div class="qnav exam-nav">
+      ${lastP ? "" : `<button class="ghost btn-submit-now" id="btn-submit-now">Nộp bài ngay</button>`}
       <button class="ghost" id="btn-prev" ${s.i === 0 ? "disabled" : ""}>${ICON.back} Câu trước</button>
       ${lastP ? `<button class="btn-next btn-submit" id="btn-next">Nộp bài ${ICON.check}</button>` : `<button class="btn-next" id="btn-next">Câu tiếp ${ICON.arrow}</button>`}
     </div>
@@ -5434,7 +5455,7 @@ function examNavHTML(s) {
       ${s.qs.map((qq, i) => `<button class="dot ${i === s.i ? "cur" : ""} ${isAnswered(qq, s.ans[i]) ? "done" : ""}" data-go="${i}" id="dot-${i}" aria-label="Câu ${i + 1}">${i + 1}</button>`).join("")}
       ${s.essays.map((e, k) => `<button class="dot dot-es ${s.qs.length + k === s.i ? "cur" : ""} ${s.essayAns[k].trim() ? "done" : ""}" data-go="${s.qs.length + k}" id="dot-tl${k}" aria-label="Tự luận câu ${k + 1}">TL${k + 1}</button>`).join("")}
     </div>
-    ${lastP ? "" : `<p class="exam-submit-row"><button class="ghost" id="btn-submit-now">Nộp bài ngay</button></p>`}`;
+`;
 }
 function bindExamNav() {
   $("#btn-next").onclick = () => nextQuestion(false);
@@ -5539,6 +5560,16 @@ function renderQuiz() {
   document.querySelectorAll("[data-go]").forEach((b) => (b.onclick = () => goQuestion(+b.dataset.go)));
   $("#btn-quit").onclick = () => { pauseTimer(); showConfirm("Thoát bây giờ thì bài làm sẽ không được chấm. Con chắc chứ?", "Thoát", () => { session = null; renderHome(); window.scrollTo(0, 0); }); };
 }
+/* Bấm Enter để sang câu tiếp (trừ khi đang gõ bài tự luận) */
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Enter" || e.shiftKey || view !== "quiz" || !session) return;
+  const t = e.target;
+  if (t && (t.tagName === "TEXTAREA" || t.id === "sa-input")) return; // ô trả lời ngắn tự xử lí Enter
+  const c = document.getElementById("confirm");
+  if (c && !c.hidden) return;
+  e.preventDefault();
+  nextQuestion(false);
+}, true);
 function isAnswered(q, a) {
   if (q.t === "mc") return a !== null && a !== undefined;
   if (q.t === "tf") return !!a && a.every((x) => x !== null);

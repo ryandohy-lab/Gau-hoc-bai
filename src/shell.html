@@ -32,6 +32,7 @@
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 body {
+  margin: 0;
   background-color: var(--bg); color: var(--ink); font: 400 15px/1.55 var(--f-body);
   background-image:
     linear-gradient(var(--grid-b) 1px, transparent 1px),
@@ -244,6 +245,25 @@ h1, h2 { margin: 0; text-wrap: balance; }
 .parts .parts-tot { background: var(--accent-soft); }
 .lock-note { text-align: center; color: var(--bad); font-size: 14px; margin: 8px 0 0; }
 .opt:disabled, .tfb:disabled { opacity: .75; cursor: default; }
+/* Màn hình làm bài gói trong một màn hình: thẻ câu hỏi tự cuộn bên trong, nút và hàng số câu luôn hiện */
+#app:has(> .quiz) { padding-block: 10px; }
+.quiz { display: flex; flex-direction: column; gap: 10px; height: calc(100vh - 20px); height: calc(100dvh - 20px); min-height: 0; }
+.quiz > * { flex: none; }
+.quiz > .qcard { flex: 0 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; align-content: start; gap: 12px; padding: clamp(14px, 3vw, 22px); }
+.quiz .opts, .quiz .tfs { gap: 8px; }
+.quiz .opt { padding: 9px 12px; }
+.quiz .tf { padding: 8px 12px; }
+.quiz .fuse-total { margin: -4px 0 0; }
+.quiz .dots { gap: 4px; }
+.quiz .exam-submit-row { margin: 0; }
+.quiz .exam-submit-row button { padding: 6px 14px; }
+.exam-nav .btn-submit-now { margin-right: auto; }
+@media (max-height: 820px) {
+  .quiz .fuse-total { display: none; }
+  .quiz { gap: 8px; }
+  .quiz .qtags { display: none; }
+  .quiz .fuse-sec { height: 40px; }
+}
 .sync-note { color: var(--muted); font-size: 13px; margin: 4px 2px 12px; }
 .es-row td { background: var(--bg); font-size: 13px; }
 .es-row details p { margin: 6px 0; white-space: normal; }

@@ -704,6 +704,7 @@ function examFuseHTML(s) {
 function examNavHTML(s) {
   const n = pagesOf(s), lastP = s.i === n - 1;
   return `<div class="qnav exam-nav">
+      ${lastP ? "" : `<button class="ghost btn-submit-now" id="btn-submit-now">Nộp bài ngay</button>`}
       <button class="ghost" id="btn-prev" ${s.i === 0 ? "disabled" : ""}>${ICON.back} Câu trước</button>
       ${lastP ? `<button class="btn-next btn-submit" id="btn-next">Nộp bài ${ICON.check}</button>` : `<button class="btn-next" id="btn-next">Câu tiếp ${ICON.arrow}</button>`}
     </div>
@@ -711,7 +712,7 @@ function examNavHTML(s) {
       ${s.qs.map((qq, i) => `<button class="dot ${i === s.i ? "cur" : ""} ${isAnswered(qq, s.ans[i]) ? "done" : ""}" data-go="${i}" id="dot-${i}" aria-label="Câu ${i + 1}">${i + 1}</button>`).join("")}
       ${s.essays.map((e, k) => `<button class="dot dot-es ${s.qs.length + k === s.i ? "cur" : ""} ${s.essayAns[k].trim() ? "done" : ""}" data-go="${s.qs.length + k}" id="dot-tl${k}" aria-label="Tự luận câu ${k + 1}">TL${k + 1}</button>`).join("")}
     </div>
-    ${lastP ? "" : `<p class="exam-submit-row"><button class="ghost" id="btn-submit-now">Nộp bài ngay</button></p>`}`;
+`;
 }
 function bindExamNav() {
   $("#btn-next").onclick = () => nextQuestion(false);
@@ -816,6 +817,16 @@ function renderQuiz() {
   document.querySelectorAll("[data-go]").forEach((b) => (b.onclick = () => goQuestion(+b.dataset.go)));
   $("#btn-quit").onclick = () => { pauseTimer(); showConfirm("Thoát bây giờ thì bài làm sẽ không được chấm. Con chắc chứ?", "Thoát", () => { session = null; renderHome(); window.scrollTo(0, 0); }); };
 }
+/* Bấm Enter để sang câu tiếp (trừ khi đang gõ bài tự luận) */
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Enter" || e.shiftKey || view !== "quiz" || !session) return;
+  const t = e.target;
+  if (t && (t.tagName === "TEXTAREA" || t.id === "sa-input")) return; // ô trả lời ngắn tự xử lí Enter
+  const c = document.getElementById("confirm");
+  if (c && !c.hidden) return;
+  e.preventDefault();
+  nextQuestion(false);
+}, true);
 function isAnswered(q, a) {
   if (q.t === "mc") return a !== null && a !== undefined;
   if (q.t === "tf") return !!a && a.every((x) => x !== null);
