@@ -117,7 +117,7 @@ M("Bản đồ là",["hình vẽ thu nhỏ trên mặt phẳng của một khu v
 M("Trên bản đồ, nếu kinh tuyến, vĩ tuyến là những đường thẳng thì đầu trên của kinh tuyến chỉ hướng",["bắc","nam","đông","tây"]);
 M("Đầu bên phải của vĩ tuyến chỉ hướng",["đông","tây","bắc","nam"]);
 M("Hướng nằm giữa hướng bắc và hướng đông là",["đông bắc","tây bắc","đông nam","tây nam"]);
-M("Có bao nhiêu hướng chính trên bản đồ?",["8 hướng (4 hướng chính, 4 hướng phụ)","4 hướng","2 hướng","16 hướng"]);
+M("Trên bản đồ có tất cả bao nhiêu hướng (gồm hướng chính và hướng phụ)?",["8 hướng (4 hướng chính, 4 hướng phụ)","4 hướng","2 hướng","16 hướng"]);
 M("Muốn xác định phương hướng trên bản đồ, trước hết cần dựa vào",["các đường kinh tuyến, vĩ tuyến hoặc mũi tên chỉ hướng bắc","màu sắc trên bản đồ","tên bản đồ","bảng chú giải"]);
 T("Về bản đồ và phương hướng:",["+Bản đồ luôn có sai số so với thực tế vì bề mặt cong được vẽ lên mặt phẳng.","-Bản đồ thế giới hoàn toàn chính xác như quả Địa Cầu.","+Đầu dưới của kinh tuyến chỉ hướng nam.","+Đầu bên trái của vĩ tuyến chỉ hướng tây."]);
 V("Trên bản đồ Việt Nam, Hà Nội nằm ở phía trên, Thành phố Hồ Chí Minh ở phía dưới. Vậy Hà Nội nằm ở hướng nào so với Thành phố Hồ Chí Minh?",["Bắc (chính xác là bắc – tây bắc)","Nam","Đông","Tây nam"],1);

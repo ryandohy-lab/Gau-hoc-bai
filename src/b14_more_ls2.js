@@ -105,7 +105,7 @@ M("Vương quốc Phù Nam ra đời vào khoảng",["thế kỉ I","thế kỉ 
 M("Vương quốc Phù Nam nằm ở vùng",["Nam Bộ Việt Nam ngày nay","Bắc Bộ","Trung Bộ","Tây Bắc"]);
 M("Thương cảng nổi tiếng của Phù Nam là",["Óc Eo","Hội An","Vân Đồn","Phố Hiến"]);
 M("Kinh tế chủ yếu của Phù Nam là",["nông nghiệp lúa nước, thủ công nghiệp và buôn bán đường biển","chăn nuôi du mục","khai thác dầu mỏ","săn bắt, hái lượm"]);
-T("Về vương quốc Phù Nam:",["+Phù Nam từng là quốc gia phát triển nhất Đông Nam Á lúc bấy giờ.","+Cư dân Phù Nam chịu ảnh hưởng văn hóa Ấn Độ.","-Phù Nam nằm ở khu vực miền núi phía Bắc.","+Đến thế kỉ VII, Phù Nam suy yếu và bị Chân Lạp thôn tính."]);
+T("Về vương quốc Phù Nam:",["+Phù Nam từng là một quốc gia hùng mạnh ở Đông Nam Á.","+Cư dân Phù Nam chịu ảnh hưởng văn hóa Ấn Độ.","-Phù Nam nằm ở khu vực miền núi phía Bắc.","+Đến thế kỉ VII, Phù Nam suy yếu và bị Chân Lạp thôn tính."]);
 V("Ở di chỉ Óc Eo, các nhà khảo cổ tìm thấy đồng tiền La Mã, gương đồng Trung Quốc. Điều đó chứng tỏ",["Phù Nam có quan hệ buôn bán rộng rãi với nhiều nước","Phù Nam là thuộc địa của La Mã","người Phù Nam tự làm ra tiền La Mã","Phù Nam không buôn bán"],1);
 
 VL("d9");
@@ -190,8 +190,8 @@ V("Vì sao Đà Lạt có khí hậu mát mẻ quanh năm dù nằm ở vĩ đ�
 VL("d17");
 M("Thời tiết là",["trạng thái khí quyển ở một nơi trong thời gian ngắn","trạng thái khí quyển lặp lại nhiều năm","nhiệt độ trung bình năm","lượng mưa cả năm"]);
 M("Khí hậu là",["tổng hợp các yếu tố thời tiết của một nơi trong thời gian dài, có tính quy luật","trạng thái khí quyển trong một ngày","nhiệt độ lúc 7 giờ sáng","một cơn mưa"]);
-M("Trên Trái Đất có mấy đới khí hậu?",["5 đới (1 nhiệt đới, 2 ôn đới, 2 hàn đới)","3 đới","4 đới","7 đới"]);
-M("Việt Nam nằm trong đới khí hậu",["nhiệt đới","ôn đới","hàn đới","cận cực"]);
+M("Trên Trái Đất có mấy đới khí hậu?",["5 đới (1 đới nóng, 2 đới ôn hòa, 2 đới lạnh)","3 đới","4 đới","7 đới"]);
+M("Việt Nam nằm trong đới khí hậu",["nhiệt đới (đới nóng)","ôn đới (đới ôn hòa)","hàn đới (đới lạnh)","cận cực"]);
 M("Biểu hiện của biến đổi khí hậu là",["nhiệt độ tăng, mực nước biển dâng, thiên tai bất thường","Trái Đất ngừng quay","Mặt Trời tắt","không có mùa"]);
 M("Nguyên nhân chủ yếu của biến đổi khí hậu hiện nay là",["hoạt động của con người làm tăng khí nhà kính","Mặt Trăng di chuyển xa hơn","số núi lửa giảm","Trái Đất nhỏ đi"]);
 T("Về thời tiết, khí hậu và biến đổi khí hậu:",["+Bản tin “Ngày mai Hà Nội có mưa rào” nói về thời tiết.","+Trồng rừng góp phần giảm nhẹ biến đổi khí hậu.","-Biến đổi khí hậu không ảnh hưởng đến Việt Nam.","+Đồng bằng sông Cửu Long có nguy cơ bị ngập do nước biển dâng."]);

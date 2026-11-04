@@ -16,7 +16,7 @@ M("Trên bản đồ, đầu phía trên của kinh tuyến chỉ hướng",["B�
 M("Trên bản đồ, đầu bên phải của vĩ tuyến chỉ hướng",["Đông","Tây","Bắc","Nam"]);
 M("Hướng nằm giữa hướng Bắc và hướng Đông là",["Đông Bắc","Tây Bắc","Đông Nam","Tây Nam"]);
 M("Quả Địa Cầu là",["mô hình thu nhỏ của Trái Đất","bản đồ thế giới","ảnh vệ tinh","mô hình Mặt Trăng"]);
-T("Về bản đồ và phương hướng:",["+Đầu bên trái của vĩ tuyến chỉ hướng Tây.","-Đầu phía dưới kinh tuyến chỉ hướng Bắc.","+Bản đồ luôn có sai số nhất định so với thực tế.","+Bản đồ có 8 hướng chính."]);
+T("Về bản đồ và phương hướng:",["+Đầu bên trái của vĩ tuyến chỉ hướng Tây.","-Đầu phía dưới kinh tuyến chỉ hướng Bắc.","+Bản đồ luôn có sai số nhất định so với thực tế.","+Trên bản đồ có 4 hướng chính và 4 hướng phụ."]);
 S("Hướng ngược lại với hướng Tây Bắc là hướng nào?","Đông Nam");
 M("Với bản đồ không vẽ kinh, vĩ tuyến, ta xác định phương hướng dựa vào",["mũi tên chỉ hướng Bắc trên bản đồ","màu sắc bản đồ","tên bản đồ","bảng chú giải"],1);
 
