@@ -308,11 +308,25 @@ function bestOf(list, n, attemptNo) {
 function ensureVd(chosen, pool, want) {
   const have = chosen.filter((q) => q.vd).length;
   if (have >= want) return;
-  shuffle(pool.filter((q) => q.vd && !chosen.includes(q))).slice(0, want - have).forEach((x) => {
+  shuffle(pool.filter((q) => q.vd && q.lv !== 2 && !chosen.includes(q))).slice(0, want - have).forEach((x) => {
     const idx = chosen.map((q, i) => [q, i]).reverse().find(([q]) => q.t === "mc" && !q.vd && q.lv !== 2 && !(store.q[q.id] && store.q[q.id].b === 0));
     if (idx) chosen[idx[1]] = x;
   });
 }
+function capAdv(chosen, pool, cap, attemptNo) { // giữ số câu nâng cao vừa phải (1 – 3 câu mỗi đề)
+  let extra = chosen.filter((q) => q.lv === 2).length - cap;
+  if (extra <= 0) return chosen;
+  const spare = bestOf(pool.filter((q) => q.lv !== 2 && !chosen.includes(q)), extra * 3, attemptNo);
+  for (let i = chosen.length - 1; i >= 0 && extra > 0; i--) {
+    const q = chosen[i];
+    if (q.lv !== 2 || (store.q[q.id] && store.q[q.id].b === 0)) continue;
+    const k = spare.findIndex((x) => x.t === q.t);
+    if (k < 0) continue;
+    chosen[i] = spare.splice(k, 1)[0]; extra--;
+  }
+  return chosen;
+}
+const ADV_CAP = { bai: 3, kttx: 2, gk: 3, ck: 4 };
 function pickQuestions(mode, subj, lesId, pickIds) {
   const pool = poolFor(mode, subj, lesId, pickIds);
   const attemptNo = store.hist.length + 1;
@@ -327,6 +341,7 @@ function pickQuestions(mode, subj, lesId, pickIds) {
     let cand = BANK.filter((q) => back.has(q.les));
     if (cand.length < LESSON_TOTAL - own.length) { const ahead = new Set(track.slice(pos + 1).map((x) => x.id)); cand = cand.concat(BANK.filter((q) => ahead.has(q.les))); }
     const fill = bestOf(cand, LESSON_TOTAL - own.length, attemptNo);
+    capAdv(own, pool, 2, attemptNo); capAdv(fill, cand, 1, attemptNo);
     return shuffle(own.concat(fill)).sort((a, b) => order[a.t] - order[b.t]).map(prepare);
   }
   const need = MODES[mode].need;
@@ -354,6 +369,7 @@ function pickQuestions(mode, subj, lesId, pickIds) {
         if (idx) chosen[idx[1]] = x;
       });
     }
+    if (ADV_CAP[mode]) capAdv(chosen, pool, ADV_CAP[mode], attemptNo);
     ensureVd(chosen, pool, mode === "ck" ? 5 : 4);
     if (chosen.length < total && pickIds && pickIds.length) { // bài đã chọn chưa đủ câu: lấy thêm câu ôn từ bài đã học
       const picked = new Set(pickIds);
