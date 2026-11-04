@@ -1,5 +1,5 @@
 """Ghép mã nguồn thành trang web index.html (chạy: python3 src/build.py ở thư mục gốc kho)."""
-import pathlib
+import pathlib, time
 src = pathlib.Path(__file__).parent
 parts = ["b0_core.js", "b1_ls.js", "b2_dl.js", "b3_kh.js", "b4_cn_gd_th.js", "b5_vd.js", "b6_gd_gk.js",
          "b7_ls_gk.js", "b8_th_gk.js", "b9_cn_gk.js", "b10_kh_gk.js", "b11_keys.js", "b12_more_ls.js", "b13_more_kh.js", "b14_more_ls2.js", "b15_more_kh2.js", "b16_more_th_cn_gd.js", "b17_nc1.js", "b18_nc2.js"]
@@ -15,5 +15,6 @@ head = """<!DOCTYPE html>
 <link rel="icon" href="icon.svg"><link rel="apple-touch-icon" href="icon.png">
 </head><body>
 """
+page = page.replace('const APP_VER = "__VER__";', 'const APP_VER = "%d";' % int(time.time()))
 (src.parent / "index.html").write_text(head + page + "\n</body></html>\n")
 print("index.html built")

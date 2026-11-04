@@ -5993,6 +5993,17 @@ function confetti() {
 renderHome();
 initCloud();
 initSheetReader();
+/* Bản web (GitHub): tự lấy bản mới nhất khi có cập nhật, tránh trình duyệt giữ bản cũ */
+const APP_VER = "1793766556";
+if (FILE_MODE && /^https?:/.test(location.protocol) && APP_VER !== "__" + "VER__") {
+  setTimeout(async () => {
+    try {
+      const t = await (await fetch(location.pathname + "?_=" + Date.now(), { cache: "no-store" })).text();
+      const m = t.match(/const APP_VER = "(\d+)"/);
+      if (m && m[1] !== APP_VER && view !== "quiz") location.replace(location.pathname + "?v=" + m[1]);
+    } catch (e) {}
+  }, 1500);
+}
 requestAnimationFrame(tick);
 
 </script>
