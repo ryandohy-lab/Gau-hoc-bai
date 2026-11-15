@@ -4844,8 +4844,57 @@ function formText(h) {
 async function postForm(fields) {
   try { await fetch(FORM_POST, { method: "POST", mode: "no-cors", body: new URLSearchParams(fields) }); return true; } catch (e) { return false; }
 }
+/* ===== Chế độ "Mẹ theo dõi" trên trang web: đọc kết quả của Gấu từ bảng tính đã công khai dạng CSV ===== */
+const PARENT_KEY = "von6-parent-csv";
+let parentCsv = ""; try { parentCsv = localStorage.getItem(PARENT_KEY) || ""; } catch (e) {}
+let parentStatus = "", parentSeen = 0, parentTimer = null;
+function parseCSV(txt) {
+  const rows = []; let row = [], cur = "", q = false;
+  for (let i = 0; i < txt.length; i++) {
+    const c = txt[i];
+    if (q) { if (c === '"') { if (txt[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += c; }
+    else if (c === '"') q = true;
+    else if (c === ",") { row.push(cur); cur = ""; }
+    else if (c === "\n" || c === "\r") { if (c === "\r" && txt[i + 1] === "\n") i++; row.push(cur); rows.push(row); row = []; cur = ""; }
+    else cur += c;
+  }
+  if (cur || row.length) { row.push(cur); rows.push(row); }
+  return rows;
+}
+function csvUrlOf(t) {
+  t = String(t || "").trim();
+  if (/\/pub\?|output=csv|tqx=out:csv/.test(t)) return t;
+  const m = t.match(/\/spreadsheets\/d\/([A-Za-z0-9_-]{20,})/);
+  if (m) { const g = (t.match(/gid=(\d+)/) || [])[1]; return "https://docs.google.com/spreadsheets/d/" + m[1] + "/gviz/tq?tqx=out:csv" + (g ? "&gid=" + g : ""); }
+  return "";
+}
+async function syncParent(silent) {
+  if (!parentCsv) return;
+  parentStatus = "loading"; if (!silent && view === "stats") renderStats();
+  try {
+    const r = await fetch(parentCsv + (parentCsv.includes("?") ? "&" : "?") + "_=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) throw new Error("http " + r.status);
+    const rows = parseCSV(await r.text());
+    if (!rows.length) throw new Error("empty");
+    let col = rows[0].findIndex((h) => /du\s*lieu|data/i.test(plain(String(h || "").toLowerCase())));
+    if (col < 0) col = 2;
+    let remote = fresh(), n = 0;
+    rows.slice(1).forEach((rw) => { try { const d = JSON.parse(rw[col] || ""); remote = merge(remote, { hist: d.hist || [], q: d.q || {}, done: d.done || {} }); n++; } catch (e) {} });
+    if (!n) { parentStatus = rows.length > 1 ? "bad" : "empty"; }
+    else {
+      const before = store.hist.length;
+      store = merge(store, remote);
+      try { localStorage.setItem(LS_KEY, JSON.stringify(store)); localStorage.setItem(FORM_SENT, String(Math.max(0, ...store.hist.map((h) => h.t)))); } catch (e) {}
+      parentStatus = "ok"; parentSeen = Date.now();
+      if (store.hist.length !== before && view === "home") renderHome();
+    }
+  } catch (e) { parentStatus = "fail"; }
+  if (view === "stats") { const y = window.scrollY; renderStats(); window.scrollTo(0, y); }
+}
+function startParent() { if (parentTimer) clearInterval(parentTimer); if (parentCsv) { syncParent(true); parentTimer = setInterval(() => syncParent(true), 60000); } }
+const PARENT_MSG = { loading: "Đang đọc kết quả của Gấu…", empty: "Bảng tính chưa có kết quả nào của Gấu.", bad: "Đọc được bảng tính nhưng không thấy cột Dữ liệu. Mẹ kiểm tra lại đúng bảng tính của biểu mẫu chưa nhé.", fail: "Chưa đọc được bảng tính. Mẹ kiểm tra bảng tính đã được Xuất bản lên web (dạng CSV) hoặc chia sẻ “Bất kỳ ai có đường liên kết”." };
 async function pushForm() {
-  if (!FILE_MODE || formBusy) return;
+  if (!FILE_MODE || formBusy || parentCsv) return; // máy của mẹ (đang theo dõi) không gửi kết quả
   let sent = 0; try { sent = +localStorage.getItem(FORM_SENT) || 0; } catch (e) {}
   const hs = store.hist.filter((h) => h.t > sent);
   if (!hs.length) return;
@@ -5891,6 +5940,14 @@ function renderStats() {
     </div>
     ${hard.length ? `<div class="panel"><h2 class="sec">Câu hay sai nhất</h2><ol class="hard">${hard.map(([id, x]) => `<li><span class="tag" style="background:${SUBJECTS[BY_ID[id].s].c}">${esc(lesShort(LES[BY_ID[id].les]))}</span><span>${esc(BY_ID[id].q)}</span><em>sai ${x.w} lần${x.b === 0 ? " · đang chờ làm lại" : ""}</em></li>`).join("")}</ol></div>` : ""}
     <p class="sync-note">${cloudRef ? `Kết quả tự đồng bộ giữa các máy cùng tài khoản${lastSeen() ? ` · lượt mới nhất lúc ${lastSeen()}` : ""}` : "Đang lưu trên máy này"}</p>
+    ${FILE_MODE ? `<div class="panel send-panel">
+      <h2 class="sec">Mẹ theo dõi kết quả của Gấu</h2>
+      ${parentCsv ? `<p class="hint">${PARENT_MSG[parentStatus] || (parentSeen ? "Đã cập nhật kết quả của Gấu lúc " + new Date(parentSeen).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }) + ". Trang tự cập nhật mỗi phút." : "")}</p>
+        <div class="row"><button class="ghost" id="btn-parent-sync">Cập nhật ngay</button><button class="ghost" id="btn-parent-off">Tắt theo dõi trên máy này</button></div>`
+      : `<p class="hint">Chỉ dùng trên máy của mẹ, không bật trên iPad của Gấu. Dán link bảng tính kết quả (đã xuất bản lên web dạng CSV) để xem mọi lượt làm của Gấu ngay trên trang này.</p>
+        <label class="sa"><span>Link bảng tính kết quả</span><textarea id="parent-url" rows="2" placeholder="https://docs.google.com/spreadsheets/d/e/…/pub?output=csv"></textarea></label>
+        <div class="row"><button class="btn-start" id="btn-parent-on">Bật theo dõi</button><span id="parent-msg" class="imp-msg" role="status"></span></div>`}
+    </div>` : ""}
     ${GAS || !mcpNS ? "" : `<div class="panel send-panel">
       <h2 class="sec">Kết quả từ máy của Gấu</h2>
       ${sheetId ? `<p class="hint">${mcpNS ? (SHEET_MSG[sheetStatus] || (sheetSeen ? "Đã đọc bảng tính lúc " + new Date(sheetSeen).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }) + ". Trang tự kiểm tra lại mỗi phút." : "")) : "Mở trang này trên Claude bằng tài khoản của mẹ để tự đọc bảng tính."}</p>
@@ -5908,6 +5965,14 @@ function renderStats() {
   </section>`;
   $("#btn-back").onclick = () => { renderHome(); window.scrollTo(0, 0); };
   const findH = (t) => store.hist.find((x) => String(x.t) === String(t));
+  if ($("#btn-parent-on")) $("#btn-parent-on").onclick = () => {
+    const u = csvUrlOf($("#parent-url").value);
+    if (!u) { $("#parent-msg").textContent = "Link chưa đúng. Mẹ dán link bảng tính Google Sheets nhé."; return; }
+    parentCsv = u; try { localStorage.setItem(PARENT_KEY, u); } catch (e) {}
+    startParent(); renderStats();
+  };
+  if ($("#btn-parent-sync")) $("#btn-parent-sync").onclick = () => syncParent(false);
+  if ($("#btn-parent-off")) $("#btn-parent-off").onclick = () => { parentCsv = ""; parentStatus = ""; if (parentTimer) clearInterval(parentTimer); try { localStorage.removeItem(PARENT_KEY); } catch (e) {} renderStats(); };
   document.querySelectorAll("[data-review]").forEach((b) => (b.onclick = () => renderReview(+b.dataset.review)));
   document.querySelectorAll("[data-redow]").forEach((b) => (b.onclick = () => { const h = findH(b.dataset.redow); if (h) redoWrongOf(h); }));
   document.querySelectorAll("[data-redoa]").forEach((b) => (b.onclick = () => { const h = findH(b.dataset.redoa); if (h) redoAllOf(h); }));
@@ -6069,8 +6134,9 @@ function confetti() {
 renderHome();
 initCloud();
 initSheetReader();
+if (FILE_MODE) startParent();
 /* Bản web (GitHub): tự lấy bản mới nhất khi có cập nhật, tránh trình duyệt giữ bản cũ */
-const APP_VER = "1794712986";
+const APP_VER = "1794713510";
 if (FILE_MODE && /^https?:/.test(location.protocol) && APP_VER !== "__" + "VER__") {
   setTimeout(async () => {
     try {
