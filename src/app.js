@@ -381,8 +381,8 @@ function pickQuestions(mode, subj, lesId, pickIds) {
   return shuffle(chosen).sort((a, b) => order[a.t] - order[b.t]).map(prepare);
 }
 function prepare(q) {
-  if (q.t === "mc" && q.keep) return { ...q, opts: q.o.slice(), ans: q.a };
-  if (q.t === "mc") { const idx = shuffle([0, 1, 2, 3]); return { ...q, opts: idx.map((i) => q.o[i]), ans: idx.indexOf(q.a) }; }
+  if (q.t === "mc" && q.keep) return { ...q, opts: q.o.slice(), ans: q.a, perm: [0, 1, 2, 3] };
+  if (q.t === "mc") { const idx = shuffle([0, 1, 2, 3]); return { ...q, opts: idx.map((i) => q.o[i]), ans: idx.indexOf(q.a), perm: idx }; }
   return { ...q };
 }
 
@@ -862,6 +862,8 @@ function submit() {
   const entry = { t: Date.now(), m: s.mode, s: s.subj, sc, k: res.filter((r) => r.ok).length, tot: s.qs.length, w: wrongIds, d: Math.round((Date.now() - s.start) / 1000) };
   if (s.les) entry.les = s.les;
   if (s.pick) entry.pick = s.pick.length;
+  // Lưu lại đề và bài làm để xem lại / làm lại sau này
+  entry.qa = s.qs.map((q, i) => [q.id, q.perm ? q.perm.join("") : "", s.ans[i] == null ? null : s.ans[i], s.timeout && s.timeout[i] ? 1 : 0]);
   if (s.set) { entry.set = s.set; entry.setSubj = s.subj; if (s.essayAns) { entry.es = s.essayAns.map((t) => t.slice(0, 1500)); const per = (s.essayPts || 3) / s.essays.length; entry.esc = q4(s.essays.reduce((n, e, k) => n + per * gradeEssay(e, s.essayAns[k]).frac, 0)); entry.esMax = s.essayPts || 3; s.esc0 = entry.esc; entry.tnp = Math.round((s.tn != null ? s.tn * (s.tnPts || 7) / s.tnMax : sc * (s.tnPts || 7) / 10) * 100) / 100; } if (s.exam) entry.dur = Math.round(Math.min(exMin(s) * 60000, exMin(s) * 60000 - Math.max(0, (s.paused != null ? s.paused : s.deadline - nowMs()))) / 1000); }
   store.hist.push(entry); s.histT = entry.t;
   store.hist = store.hist.slice(-500);
@@ -967,12 +969,14 @@ function renderResult() {
       <ul>${s.qs.filter((q, i) => q.vd && s.res[i].ok).map((q) => `<li><span class="tag" style="background:${SUBJECTS[q.s].c}">${esc(lesShort(LES[q.les]))}</span><p>${esc(q.q)}</p><p class="idea-ans">${ICON.check}<span>${esc(q.opts[q.ans])}</span></p></li>`).join("")}</ul>
     </div>` : ""}
     <div class="row center">
+      <button class="ghost" id="btn-again-all">${ICON.daily} Làm lại toàn bài</button>
       <button class="ghost" id="btn-home">${ICON.back} Về trang chính</button>
       <button class="ghost" id="btn-stats2">${ICON.chart} Xem thống kê</button>
     </div>
     ${GAS || FILE_MODE ? `<p class="sync-note center">Kết quả tự gửi về cho mẹ khi có mạng.</p>` : ""}
   </section>`;
   if ($("#btn-redo")) $("#btn-redo").onclick = () => startSession("redo", s.subj, shuffle(wrong.map((w) => prepare(BY_ID[w.q.id]))));
+  $("#btn-again-all").onclick = () => { const h = store.hist.find((x) => x.t === s.histT); if (h) redoAllOf(h); };
   if ($("#btn-reveal")) $("#btn-reveal").onclick = (e) => { document.querySelectorAll(".reveal").forEach((x) => (x.hidden = false)); e.currentTarget.hidden = true; };
   if ($("#btn-kttx")) $("#btn-kttx").onclick = () => { sel.mode = "kttx"; sel.tabs = { ...(sel.tabs || {}), kttx: "all" }; sel.subj = s.subj; saveSel(); startSession("kttx", s.subj); };
   if (s.essays) {
@@ -1020,6 +1024,57 @@ function renderResult() {
 }
 
 /* ================= THỐNG KÊ ================= */
+/* ===== XEM LẠI BÀI ĐÃ LÀM · LÀM LẠI CÂU SAI · LÀM LẠI TOÀN BÀI ===== */
+function rebuildQ(id, perm) { // dựng lại câu hỏi đúng như lúc con làm (giữ thứ tự đáp án)
+  const q = BY_ID[id]; if (!q) return null;
+  if (q.t === "mc" && perm && perm.length === 4) { const idx = perm.split("").map(Number); return { ...q, opts: idx.map((i) => q.o[i]), ans: idx.indexOf(q.a), perm: idx }; }
+  return prepare(q);
+}
+function histQuestions(h) { return (h.qa || []).map((x) => ({ q: rebuildQ(x[0], x[1]), a: x[2], late: !!x[3] })).filter((x) => x.q); }
+function redoWrongOf(h) {
+  const ids = h.qa ? histQuestions(h).filter((x) => !gradeOne(x.q, x.a).ok).map((x) => x.q.id) : (h.w || []);
+  const qs = ids.map((id) => BY_ID[id]).filter(Boolean).map(prepare);
+  if (qs.length) startSession("redo", h.s, shuffle(qs));
+}
+function redoAllOf(h) {
+  if (h.set && DC_SETS[h.setSubj || h.s]) { startSet(h.setSubj || h.s, h.set); return; }
+  if (h.qa && h.qa.length) { startSession(h.m === "redo" ? "redo" : h.m, h.s, shuffle(h.qa.map((x) => BY_ID[x[0]]).filter(Boolean).map(prepare)), h.les || null); return; }
+  startSession(h.m === "redo" ? "kttx" : h.m, h.s, null, h.les || null);
+}
+function renderReview(t) {
+  const h = store.hist.find((x) => x.t === t); if (!h) { renderStats(); return; }
+  view = "review";
+  const items = histQuestions(h);
+  const nWrong = h.qa ? items.filter((x) => !gradeOne(x.q, x.a).ok).length : (h.w || []).length;
+  const when = new Date(h.t).toLocaleString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  const subj = SUBJECTS[h.s] || { c: "var(--accent)", short: "" };
+  $("#app").innerHTML = `
+  <section class="review" style="--sc:${subj.c}">
+    <div class="qbar"><button class="ghost" id="btn-back">${ICON.back} Thống kê</button><span class="qmeta">${esc(subj.short)} · ${esc(histLabel(h))}</span><span></span></div>
+    <div class="panel review-head">
+      <p class="sub">${when} · Đúng <b>${h.k}/${h.tot}</b> câu · Điểm <b>${h.esc != null ? fmt2(scoreOf(h)) : fmt1(h.sc)}</b></p>
+      <div class="row">
+        ${nWrong ? `<button class="btn-start" id="rv-wrong">Làm lại ${nWrong} câu sai ${ICON.arrow}</button>` : `<p class="allgood">Bài này con không sai câu nào.</p>`}
+        <button class="ghost" id="rv-all">${ICON.daily} Làm lại toàn bài</button>
+      </div>
+    </div>
+    ${items.length ? `<ol class="rv-list">${items.map((x, i) => {
+      const r = gradeOne(x.q, x.a);
+      return `<li class="${r.ok ? "ok" : "bad"}">
+        <p class="rv-q"><span class="rv-mark">${r.ok ? "✓" : "✗"}</span><b>Câu ${i + 1}.</b> ${esc(x.q.q).replace(/\n/g, "<br>")}</p>
+        ${x.q.t === "mc" ? `<ul class="rv-opts">${x.q.opts.map((o, j) => `<li class="${j === x.q.ans ? "right" : ""} ${j === x.a && j !== x.q.ans ? "picked" : ""}"><b>${"ABCD"[j]}</b> ${esc(o)}</li>`).join("")}</ul>${x.a == null ? `<p class="small">Con chưa chọn đáp án.</p>` : ""}`
+        : x.q.t === "tf" ? `<ul class="rv-opts">${x.q.st.map((st, j) => { const mine = x.a ? x.a[j] : null; const okj = mine === st[1]; return `<li class="${okj ? "right" : mine == null ? "" : "tf-bad"}"><b>${"abcd"[j]})</b> ${esc(st[0])} <small>— đáp án: <b>${st[1] ? "Đúng" : "Sai"}</b>${mine == null ? " · con chưa chọn" : okj ? "" : " · con chọn " + (mine ? "Đúng" : "Sai")}</small></li>`; }).join("")}</ul>`
+        : `<p class="small">Con trả lời: <b>${x.a ? esc(x.a) : "(bỏ trống)"}</b> · Đáp án: <b>${esc(x.q.a[0])}</b></p>`}
+        ${x.late && !r.ok ? `<p class="small late-txt">Hết giờ ở câu này.</p>` : ""}
+      </li>`; }).join("")}</ol>`
+    : `<p class="hint">Lượt này làm trước khi có chức năng xem lại nên chưa lưu từng câu. Con vẫn có thể làm lại câu sai hoặc làm lại toàn bài.</p>`}
+    ${h.es && h.es.some((x) => x.trim()) ? `<div class="panel"><h2 class="sec">Bài tự luận con đã viết</h2>${h.es.map((x, k) => `<p><b>Câu ${k + 1}:</b> ${x.trim() ? esc(x).replace(/\n/g, "<br>") : "<i>(bỏ trống)</i>"}</p>`).join("")}</div>` : ""}
+  </section>`;
+  $("#btn-back").onclick = renderStats;
+  if ($("#rv-wrong")) $("#rv-wrong").onclick = () => redoWrongOf(h);
+  $("#rv-all").onclick = () => redoAllOf(h);
+  window.scrollTo(0, 0);
+}
 function histLabel(h) {
   if (h.les && LES[h.les]) return lesShort(LES[h.les]);
   if (h.set) return "Đề cương giữa kì – Đề " + h.set;
@@ -1087,11 +1142,16 @@ function renderStats() {
     </div>`}
     <div class="panel"><h2 class="sec">Lịch sử làm bài</h2>
       ${H.length ? `<div class="table-wrap"><table><thead><tr><th>Thời gian</th><th>Môn</th><th>Bài / kiểu ôn</th><th class="num">Đúng</th><th class="num">Điểm</th></tr></thead><tbody>
-      ${H.slice().reverse().slice(0, 80).map((h) => `<tr><td>${new Date(h.t).toLocaleString("vi-VN", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</td><td>${SUBJECTS[h.s] ? SUBJECTS[h.s].short : "Trộn môn"}</td><td>${esc(histLabel(h))}</td><td class="num">${h.k}/${h.tot}</td><td class="num"><b class="sc ${scoreOf(h) >= 8 ? "hi" : scoreOf(h) >= 5 ? "mid" : "lo"}">${h.esc != null ? fmt2(scoreOf(h)) : fmt1(h.sc)}</b></td></tr>${h.es && h.es.some((x) => x.trim()) || h.dur || h.esc != null ? `<tr class="es-row"><td colspan="5">${h.esc != null ? `<small>Trắc nghiệm <b>${fmt2(h.tnp)} / ${fmt2(10 - (h.esMax || 3))}</b> · Tự luận <b>${fmt2(h.esc)} / ${fmt2(h.esMax || 3)}</b> · Tổng <b>${fmt2(scoreOf(h))} / 10</b></small> ` : ""}${h.dur ? `<small>Thời gian làm: ${mmss(h.dur)}</small>` : ""}${h.es && h.es.some((x) => x.trim()) ? `<details><summary>Xem bài tự luận con viết</summary>${h.es.map((x, k) => `<p><b>Câu ${k + 1}:</b> ${x.trim() ? esc(x).replace(/\n/g, "<br>") : "<i>(bỏ trống)</i>"}</p>`).join("")}</details>` : ""}</td></tr>` : ""}`).join("")}
+      ${H.slice().reverse().slice(0, 80).map((h) => `<tr><td>${new Date(h.t).toLocaleString("vi-VN", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</td><td>${SUBJECTS[h.s] ? SUBJECTS[h.s].short : "Trộn môn"}</td><td>${esc(histLabel(h))}</td><td class="num">${h.k}/${h.tot}</td><td class="num"><b class="sc ${scoreOf(h) >= 8 ? "hi" : scoreOf(h) >= 5 ? "mid" : "lo"}">${h.esc != null ? fmt2(scoreOf(h)) : fmt1(h.sc)}</b></td></tr>
+      <tr class="act-row"><td colspan="5"><button class="mini" data-review="${h.t}">Xem lại bài</button>${h.k < h.tot ? `<button class="mini" data-redow="${h.t}">Làm lại câu sai</button>` : ""}<button class="mini" data-redoa="${h.t}">Làm lại toàn bài</button></td></tr>${h.es && h.es.some((x) => x.trim()) || h.dur || h.esc != null ? `<tr class="es-row"><td colspan="5">${h.esc != null ? `<small>Trắc nghiệm <b>${fmt2(h.tnp)} / ${fmt2(10 - (h.esMax || 3))}</b> · Tự luận <b>${fmt2(h.esc)} / ${fmt2(h.esMax || 3)}</b> · Tổng <b>${fmt2(scoreOf(h))} / 10</b></small> ` : ""}${h.dur ? `<small>Thời gian làm: ${mmss(h.dur)}</small>` : ""}${h.es && h.es.some((x) => x.trim()) ? `<details><summary>Xem bài tự luận con viết</summary>${h.es.map((x, k) => `<p><b>Câu ${k + 1}:</b> ${x.trim() ? esc(x).replace(/\n/g, "<br>") : "<i>(bỏ trống)</i>"}</p>`).join("")}</details>` : ""}</td></tr>` : ""}`).join("")}
       </tbody></table></div>` : `<p class="empty">Chưa có lượt làm bài nào.</p>`}
     </div>
   </section>`;
   $("#btn-back").onclick = () => { renderHome(); window.scrollTo(0, 0); };
+  const findH = (t) => store.hist.find((x) => String(x.t) === String(t));
+  document.querySelectorAll("[data-review]").forEach((b) => (b.onclick = () => renderReview(+b.dataset.review)));
+  document.querySelectorAll("[data-redow]").forEach((b) => (b.onclick = () => { const h = findH(b.dataset.redow); if (h) redoWrongOf(h); }));
+  document.querySelectorAll("[data-redoa]").forEach((b) => (b.onclick = () => { const h = findH(b.dataset.redoa); if (h) redoAllOf(h); }));
   if ($("#btn-sheet-save")) $("#btn-sheet-save").onclick = () => {
     const id = parseSheetId($("#sheet-url").value);
     if (!id) { $("#imp-msg").textContent = "Link chưa đúng. Mẹ mở bảng tính, chép link trên thanh địa chỉ rồi dán vào nhé."; return; }

@@ -264,6 +264,22 @@ h1, h2 { margin: 0; text-wrap: balance; }
   .quiz .qtags { display: none; }
   .quiz .fuse-sec { height: 40px; }
 }
+.act-row td { padding-top: 0 !important; border-top: 0 !important; }
+.mini { font: 600 12.5px var(--f-body); padding: 5px 10px; margin: 0 6px 4px 0; border-radius: 99px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+.mini:hover { border-color: var(--accent); }
+.review { display: grid; gap: 14px; }
+.review-head .row { gap: 10px; flex-wrap: wrap; align-items: center; }
+.rv-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.rv-list > li { background: var(--surface); border-radius: 16px; padding: 12px 14px; border-left: 5px solid var(--good); box-shadow: var(--shadow); }
+.rv-list > li.bad { border-left-color: var(--bad); }
+.rv-q { margin: 0 0 8px; }
+.rv-mark { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; margin-right: 6px; color: #fff; background: var(--good); font-weight: 800; font-size: 13px; }
+.rv-list > li.bad .rv-mark { background: var(--bad); }
+.rv-opts { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; font-size: 14px; }
+.rv-opts li { padding: 5px 8px; border-radius: 8px; background: var(--bg); }
+.rv-opts li.right { background: color-mix(in srgb, var(--good) 18%, var(--bg)); font-weight: 600; }
+.rv-opts li.picked { background: color-mix(in srgb, var(--bad) 16%, var(--bg)); text-decoration: line-through; }
+.rv-opts li.tf-bad { background: color-mix(in srgb, var(--bad) 16%, var(--bg)); }
 .sync-note { color: var(--muted); font-size: 13px; margin: 4px 2px 12px; }
 .es-row td { background: var(--bg); font-size: 13px; }
 .es-row details p { margin: 6px 0; white-space: normal; }
